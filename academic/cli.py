@@ -41,6 +41,7 @@ def parse_args(args):
     parser_a.add_argument("--featured", action="store_true", help="Flag publications as featured")
     parser_a.add_argument("--overwrite", action="store_true", help="Overwrite existing files in output path")
     parser_a.add_argument("--compact", action="store_true", help="Generate minimal markdown")
+    parser_a.add_argument("--arxivlink", action="store_true", help="Link to Arxiv publications as part of the original publication")
     parser_a.add_argument(
         "--normalize",
         action="store_true",
@@ -77,6 +78,7 @@ def parse_args(args):
                     normalize=known_args.normalize,
                     compact=known_args.compact,
                     dry_run=known_args.dry_run,
+                    arxivlink=known_args.arxivlink,
                 )
             elif known_args.input.lower().endswith(".ipynb"):
                 # Run command to import bibtex.

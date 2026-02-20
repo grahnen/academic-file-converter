@@ -25,6 +25,7 @@ publication: ''
 publication_short: ''
 
 doi: ''
+arxivdoi: ''
 
 abstract: ''
 
@@ -45,7 +46,7 @@ url_project: ''
 url_slides: ''
 url_source: ''
 url_video: ''
-
+arxivurl: ''
 # Custom links (uncomment lines below)
 # links:
 # - name: Custom Link

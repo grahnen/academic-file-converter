@@ -22,6 +22,7 @@ def import_bibtex(
     normalize=False,
     compact=False,
     dry_run=False,
+    arxivlink=False,
 ):
     """Import publications from BibTeX file"""
     from academic.cli import log
@@ -39,7 +40,34 @@ def import_bibtex(
         parser.customization = convert_to_unicode
         parser.ignore_nonstandard_types = False
         bib_database = bibtexparser.load(bibtex_file, parser=parser)
-        for entry in bib_database.entries:
+        db = bib_database.entries
+        if arxivlink:
+            database = list(filter(lambda e: e.get("eprinttype") != "arXiv", db))
+            print(f"Number of non-arXiv entries: {len(database)}")
+            arxiv = list(filter(lambda e: e.get("eprinttype") == "arXiv", db))
+            print(f"Number of arXiv entries: {len(arxiv)}")
+            rem = []
+            for arx in arxiv:
+                found = False
+                arx_t = arx["title"].upper().replace(" ", "")
+
+                print("Checking title: " + arx["title"])
+                for entry in database:
+                    og = entry["title"].upper().replace(" ", "")
+                    if og == arx_t:
+                        entry["arxivurl"] = arx["url"]
+                        entry["arxivdoi"] = arx["doi"]
+                        print(f"Merging {entry['ID']} with arXiv entry {arx['ID']}")
+                        found = True
+                if not found:
+                    rem.append(arx)
+            db = list(database) + rem
+            print(len(db))
+
+                
+
+            
+        for entry in db:
             parse_bibtex_entry(
                 entry,
                 pub_dir=pub_dir,
@@ -166,6 +194,9 @@ def parse_bibtex_entry(
 
     if "doi" in entry:
         page.yaml["doi"] = clean_bibtex_str(entry["doi"])
+    
+    if "arxivdoi" in entry:
+        page.yaml["arxivdoi"] = clean_bibtex_str(entry["arxivdoi"])
 
     links = []
     if all(f in entry for f in ["archiveprefix", "eprint"]) and entry["archiveprefix"].lower() == "arxiv":
@@ -178,6 +209,13 @@ def parse_bibtex_entry(
             page.yaml["url_pdf"] = sane_url
         else:
             links += [{"name": "URL", "url": sane_url}]
+
+    if "arxivurl" in entry:
+        sane_url = clean_bibtex_str(entry["arxivurl"])
+        if sane_url[-4:].lower() == ".pdf":
+            page.yaml["arxiv_pdf"] = sane_url
+        else:
+            links += [{"name": "arXiv", "url": sane_url}]
 
     if links:
         page.yaml["links"] = links
